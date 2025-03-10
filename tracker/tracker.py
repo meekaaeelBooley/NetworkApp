@@ -4,8 +4,8 @@ import time
 import threading
 from datetime import datetime
 
-UDP_IP = "10.0.0.3" 
-UDP_PORT = 12000
+UDP_IP = "10.0.0.20" 
+UDP_PORT = 8500
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind((UDP_IP, UDP_PORT))

@@ -3,11 +3,12 @@ import json
 import threading
 import time
 import os
+import hashlib
 
-UDP_IP = "10.0.0.3"  # Tracker IP
-UDP_PORT = 12000        # Tracker Port
-TCP_PORT = 5005       # TCP port for file sharing
-FILES_DIR = "files"    # Directory 
+UDP_IP = "10.0.0.20"  # Tracker IP
+UDP_PORT = 8500        # Tracker Port
+TCP_PORT = 12640       # TCP port for file sharing
+FILES_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "files")    # Directory 
 
 # Register with the tracker
 def register_with_tracker(filename):
@@ -59,8 +60,15 @@ def serve_file_chunks(conn):
         with open(file_path, "rb") as file:
             file.seek(start)  # Move to the start of the chunk
             chunk = file.read(end - start)  # Read the chunk
-            conn.sendall(chunk)  # Send the chunk to the leecher
-        print(f"Sent chunk {start}-{end} of file {filename}.")
+
+             # Compute SHA-256 hash of the chunk
+            chunk_hash = hashlib.sha256(chunk).hexdigest()
+            
+            # Send the hash (64 bytes) followed by the chunk
+            conn.sendall(chunk_hash.encode('utf-8'))
+            conn.sendall(chunk)
+
+        print(f"Sent chunk {start}-{end} of {filename} with hash {chunk_hash}")
     except Exception as e:
         print(f"Error serving file chunk: {e}")
     finally:
