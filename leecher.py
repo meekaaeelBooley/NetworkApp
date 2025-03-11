@@ -6,8 +6,10 @@ import hashlib
 
 UDP_IP = "10.0.0.20"  # Tracker IP
 UDP_PORT = 8500        # Tracker Port
-DOWNLOADS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "files")  # Directory to save downloaded files
-CHUNK_SIZE = 512 * 1024  # 1 MB chunks
+# DOWNLOADS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "files")  # Directory to save downloaded files
+
+DOWNLOADS_DIR = os.path.join(os.getcwd(), 'files')
+CHUNK_SIZE = 512 * 1024  
 
 # Get the list of seeders from the tracker
 def get_peers(filename):

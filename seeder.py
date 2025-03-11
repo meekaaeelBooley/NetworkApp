@@ -8,7 +8,7 @@ import hashlib
 UDP_IP = "10.0.0.20"  # Tracker IP
 UDP_PORT = 8500        # Tracker Port
 TCP_PORT = 12640       # TCP port for file sharing
-FILES_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "files")    # Directory 
+FILES_DIR = os.path.join(os.getcwd(), 'files')    # Directory 
 
 # Register with the tracker
 def register_with_tracker(filename):
@@ -28,7 +28,7 @@ def register_with_tracker(filename):
 def send_heartbeat(filename):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     while True:
-        time.sleep(60)  # Send heartbeat every 60 seconds
+        time.sleep(120)  # Send heartbeat every 120 seconds
         data = {
             "command": "heartbeat",
             "file_id": filename,
