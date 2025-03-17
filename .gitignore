@@ -1,14 +1,14 @@
 
-# Ignore Python files
+# Ignore Python downloads
 __pycache__/
 *.pyc
 *.pyo
 
-# Ignore Java compiled files
+# Ignore Java compiled downloads
 *.class
 target/
 
-# Ignore logs and environment files
+# Ignore logs and environment downloads
 logs/
 .env
 *.log

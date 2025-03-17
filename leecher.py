@@ -4,11 +4,11 @@ import os
 import threading
 import hashlib
 
-UDP_IP = "10.0.0.20"  # Tracker IP
-UDP_PORT = 8500        # Tracker Port
-# DOWNLOADS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "files")  # Directory to save downloaded files
+config = json.loads(open('config.json').read())
+UDP_IP = config['UDP_IP']      # Tracker IP
+UDP_PORT = int(config['UDP_PORT'])  # Tracker Port
 
-DOWNLOADS_DIR = os.path.join(os.getcwd(), 'files')
+DOWNLOADS_DIR = os.path.join(os.getcwd(), 'downloads')
 CHUNK_SIZE = 512 * 1024  
 
 # Get the list of seeders from the tracker
@@ -56,7 +56,7 @@ def download_chunk(seeder_ip, seeder_port, filename, start, end, output_file):
         computed_hash = hashlib.sha256(chunk_data).hexdigest()
         if computed_hash != hash_received:
             print(f"ERROR: Hash mismatch for chunk {start}-{end}. Expected: {hash_received}, Actual: {computed_hash}")
-            return  # Optional: Retry logic here
+            return 
 
         # Write to file if hash matches
         with open(output_file, "r+b") as file:
@@ -91,6 +91,7 @@ def download_file_in_parallel(filename, peers, file_size):
         end = min(start + chunk_size, file_size)  # Ensure the last chunk doesn't exceed file size
         seeder_ip, seeder_port = peers[i % len(peers)]  # Distribute chunks among seeders
         print(f"Chunk {i}: {start}-{end} assigned to seeder {seeder_ip}:{seeder_port}")
+
         thread = threading.Thread(target=download_chunk, args=(seeder_ip, seeder_port, filename, start, end, output_file))
         threads.append(thread)
         thread.start()
@@ -111,11 +112,13 @@ def download_file_in_parallel(filename, peers, file_size):
 if __name__ == "__main__":
     filename = input("enter file name: ")  # File to download
     peers = get_peers(filename)
+
     if peers:
         # Get the file size from the first seeder (for simplicity)
         seeder_ip, seeder_port = peers[0]
         tcp_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         tcp_sock.connect((seeder_ip, seeder_port))
+
         tcp_sock.sendall(f"{filename},0,0".encode('utf-8'))  # Request file size
         file_size = int(tcp_sock.recv(1024).decode('utf-8'))
         tcp_sock.close()

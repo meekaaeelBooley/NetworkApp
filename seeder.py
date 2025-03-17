@@ -5,10 +5,12 @@ import time
 import os
 import hashlib
 
-UDP_IP = "10.0.0.20"  # Tracker IP
-UDP_PORT = 8500        # Tracker Port
-TCP_PORT = 12640       # TCP port for file sharing
-FILES_DIR = os.path.join(os.getcwd(), 'files')    # Directory 
+config = json.loads(open('config.json').read())
+UDP_IP = config['UDP_IP']     # Tracker IP
+UDP_PORT = int(config['UDP_PORT']) # Tracker Port
+
+TCP_PORT = int(config['TCP_PORT'])   # TCP port for file sharing
+FILES_DIR = os.path.join(os.getcwd(), 'downloads') # downlaods directory 
 
 # Register with the tracker
 def register_with_tracker(filename):
@@ -21,22 +23,22 @@ def register_with_tracker(filename):
     json_data = json.dumps(data).encode('utf-8')
     sock.sendto(json_data, (UDP_IP, UDP_PORT))
     message, serverAddress = sock.recvfrom(2048)
-    print(message.decode())
+    print(message.decode()) 
     sock.close()
 
-# Send heartbeat to the tracker
-def send_heartbeat(filename):
+# Send ping to the tracker
+def send_ping(filename):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     while True:
-        time.sleep(120)  # Send heartbeat every 120 seconds
+        time.sleep(120)  # Send ping every 120 seconds
         data = {
-            "command": "heartbeat",
+            "command": "ping",
             "file_id": filename,
             "port": TCP_PORT
         }
         json_data = json.dumps(data).encode('utf-8')
         sock.sendto(json_data, (UDP_IP, UDP_PORT))
-        print(f"Sent heartbeat to tracker for file {filename}")
+        print(f"Sent ping to tracker for file {filename}")
 
 # Serve specific chunks of a file to leechers
 def serve_file_chunks(conn):
@@ -87,22 +89,36 @@ def start_tcp_server():
         threading.Thread(target=serve_file_chunks, args=(conn,)).start()
 
 if __name__ == "__main__":
-    # Ensure the files directory exists
+    # Ensure the downloads directory exists
     if not os.path.exists(FILES_DIR):
         print(f"Error: The directory '{FILES_DIR}' does not exist.")
         exit(1)
 
-    # List all files in the 'files' directory to share
-    files_to_share = [f for f in os.listdir(FILES_DIR) if os.path.isfile(os.path.join(FILES_DIR, f))]
+    # List all downloads in the 'downloads' directory to share
+    # files_to_share = [f for f in os.listdir(FILES_DIR) if os.path.isfile(os.path.join(FILES_DIR, f))]
+    files_to_share = []
+    # Get a list of all entries (files)
+    all_entries = os.listdir(FILES_DIR)
+
+    # Loop through each entry in the directory
+    for entry in all_entries:
+        # Create the full path to the entry by joining the directory path and the entry name
+        full_path = os.path.join(FILES_DIR, entry)
+        # Check if the entry is a file (not a folder)
+        if os.path.isfile(full_path):
+            # If it's a file, add it to the list of files to share
+            files_to_share.append(entry)
+
+
     
     # Register each file with the tracker
     for filename in files_to_share:
         register_with_tracker(filename)
         
-        # Start heartbeat thread for each file
-        heartbeat_thread = threading.Thread(target=send_heartbeat, args=(filename,))
-        heartbeat_thread.daemon = True
-        heartbeat_thread.start()
+        # Start ping thread for each file
+        ping_thread = threading.Thread(target=send_ping, args=(filename,))
+        ping_thread.daemon = True
+        ping_thread.start()
 
     # Start the TCP server (only one instance)
     tcp_thread = threading.Thread(target=start_tcp_server)

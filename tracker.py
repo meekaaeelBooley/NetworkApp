@@ -4,8 +4,9 @@ import time
 import threading
 from datetime import datetime
 
-UDP_IP = "10.0.0.20" 
-UDP_PORT = 8500
+config = json.loads(open('config.json').read())
+UDP_IP = config['UDP_IP']
+UDP_PORT = int(config['UDP_PORT'])
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind((UDP_IP, UDP_PORT))
@@ -14,7 +15,7 @@ peers = {}
 lock = threading.Lock()
 
 def start_server():
-    cleanup_thread = threading.Thread(target=cleanup_inactive_peers)
+    cleanup_thread = threading.Thread(target=remove_old_peers)
     cleanup_thread.daemon = True
     cleanup_thread.start()
 
@@ -27,7 +28,7 @@ def start_server():
         client_thread = threading.Thread(target=handle_client, args=(data, addr))
         client_thread.start()
 
-def cleanup_inactive_peers():
+def remove_old_peers():
         while True:
             time.sleep(60)  # Check every minute
             current_time = datetime.now()
@@ -42,7 +43,7 @@ def cleanup_inactive_peers():
 def handle_client(data, addr):
     try:
         message = json.loads(data.decode('utf-8'))  
-        command = message.get('command')
+        command = message.get('command') # Header field retrieved from the json message
         print(f"Received JSON from {addr}: {message}")
 
         if command == 'register':
@@ -51,7 +52,7 @@ def handle_client(data, addr):
         elif command == 'get_peers':
             send_peer_list(message, addr)
 
-        elif command == 'heartbeat':
+        elif command == 'ping':
             update_peer_status(message, addr)
 
     except json.JSONDecodeError as e:
@@ -61,7 +62,7 @@ def handle_client(data, addr):
 
 def register_peer(message, addr):
     filename = message.get('filename')
-    port = message.get('port')  # TCP port the seeder is listening on
+    port = message.get('port')  # TCP port seeder is listening on
     
     with lock:
         if filename not in peers:
@@ -77,13 +78,14 @@ def register_peer(message, addr):
                 
         if not peer_exists:
             peers[filename].append((addr[0], port, datetime.now()))
-                
+    
+    # Send json response to the peer
     response = {
         'status': 'success',
         'message': 'Registered successfully'
     }
     sock.sendto(json.dumps(response).encode('utf-8'), addr)
-    print(f"Registered peer {addr[0]}:{port} for file {filename}")
+    print(f"Registered peer {addr[0]}:{port} for {filename}")
 
 def send_peer_list(message, addr):
     filename = message.get('filename')
@@ -114,7 +116,7 @@ def update_peer_status(message, addr):
     
     response = {
         'status': 'success',
-        'message': 'Heartbeat received'
+        'message': 'ping received'
     }
     sock.sendto(json.dumps(response).encode('utf-8'), addr)
 
