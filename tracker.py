@@ -1,3 +1,7 @@
+# Authors: Meekaaeel Booley, Yaqeen Viljoen, Allen Manthata
+# UCT Computer Science CSC3002F 2025
+# Network Assignment
+
 import socket
 import json
 import time

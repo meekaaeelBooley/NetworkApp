@@ -1,3 +1,7 @@
+# Authors: Meekaaeel Booley, Yaqeen Viljoen, Allen Manthata
+# UCT Computer Science CSC3002F 2025
+# Network Assignment
+
 import socket
 import json
 import threading
@@ -12,7 +16,7 @@ UDP_PORT = int(config['UDP_PORT']) # Tracker Port
 TCP_PORT = int(config['TCP_PORT'])   # TCP port for file sharing
 FILES_DIR = os.path.join(os.getcwd(), 'downloads') # downlaods directory 
 
-# Register with the tracker
+# register with the tracker
 def register_with_tracker(filename):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     data = {
@@ -26,7 +30,7 @@ def register_with_tracker(filename):
     print(message.decode()) 
     sock.close()
 
-# Send ping to the tracker
+# send ping to the tracker
 def send_ping(filename):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     while True:
@@ -63,10 +67,10 @@ def serve_file_chunks(conn):
             file.seek(start)  # Move to the start of the chunk
             chunk = file.read(end - start)  # Read the chunk
 
-             # Compute SHA-256 hash of the chunk
+             # compute SHA-256 hash of the chunk
             chunk_hash = hashlib.sha256(chunk).hexdigest()
             
-            # Send the hash (64 bytes) followed by the chunk
+            # send the hash (64 bytes) followed by the chunk
             conn.sendall(chunk_hash.encode('utf-8'))
             conn.sendall(chunk)
 
@@ -76,7 +80,7 @@ def serve_file_chunks(conn):
     finally:
         conn.close()
 
-# Start TCP server to listen for leechers
+# start TCP server to listen for leechers
 def start_tcp_server():
     tcp_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     tcp_sock.bind(("0.0.0.0", TCP_PORT))
@@ -89,29 +93,27 @@ def start_tcp_server():
         threading.Thread(target=serve_file_chunks, args=(conn,)).start()
 
 if __name__ == "__main__":
-    # Ensure the downloads directory exists
     if not os.path.exists(FILES_DIR):
         print(f"Error: The directory '{FILES_DIR}' does not exist.")
         exit(1)
 
     # List all downloads in the 'downloads' directory to share
-    # files_to_share = [f for f in os.listdir(FILES_DIR) if os.path.isfile(os.path.join(FILES_DIR, f))]
     files_to_share = []
     # Get a list of all entries (files)
     all_entries = os.listdir(FILES_DIR)
 
     # Loop through each entry in the directory
     for entry in all_entries:
-        # Create the full path to the entry by joining the directory path and the entry name
+        # create the full path to the entry by joining the directory path and the entry name
         full_path = os.path.join(FILES_DIR, entry)
-        # Check if the entry is a file (not a folder)
+        # check if the entry is a file (not a folder)
         if os.path.isfile(full_path):
             # If it's a file, add it to the list of files to share
             files_to_share.append(entry)
 
 
     
-    # Register each file with the tracker
+    # register each file with the tracker
     for filename in files_to_share:
         register_with_tracker(filename)
         

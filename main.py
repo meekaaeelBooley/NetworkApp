@@ -1,8 +1,9 @@
+# Authors: Meekaaeel Booley, Yaqeen Viljoen, Allen Manthata
+# UCT Computer Science CSC3002F 2025
+# Network Assignment
+
 import os
 
-# --------------------------
-# Main Function
-# --------------------------
 def main():
     print("Welcome to the P2P mini BitTorrent!")
     print("Choose a role:")
@@ -20,23 +21,14 @@ def main():
     else:
         print("Invalid choice. Exiting...")
 
-# --------------------------
-# Tracker
-# --------------------------
 def run_tracker():
     print("Starting tracker...")
     os.system("python tracker.py")
 
-# --------------------------
-# Seeder
-# --------------------------
 def run_seeder():
     print("Starting seeder...")
     os.system("python seeder.py")
 
-# --------------------------
-# Leecher
-# --------------------------
 def run_leecher():
     print("Starting leecher...")
     os.system("python leecher.py")
@@ -47,8 +39,5 @@ def run_leecher():
         print("Transitioning to a seeder...")
         run_seeder()  # Re-seed after download
 
-# --------------------------
-# Entry Point
-# --------------------------
 if __name__ == "__main__":
     main()

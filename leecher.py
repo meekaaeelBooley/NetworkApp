@@ -1,3 +1,7 @@
+# Authors: Meekaaeel Booley, Yaqeen Viljoen, Allen Manthata
+# UCT Computer Science CSC3002F 2025
+# Network Assignment
+
 import socket
 import json
 import os
@@ -69,17 +73,17 @@ def download_chunk(seeder_ip, seeder_port, filename, start, end, output_file):
     finally:
         tcp_sock.close()
 
-# Download file in parallel from multiple seeders
+# download file in parallel from multiple seeders
 def download_file_in_parallel(filename, peers, file_size):
-    # Ensure the downloads directory exists
+    # ensure the downloads directory exists
     os.makedirs(DOWNLOADS_DIR, exist_ok=True)
     output_file = os.path.join(DOWNLOADS_DIR, filename)
 
-    # Create an empty file of the required size
+    # make empty file of the required size
     with open(output_file, "wb") as file:
         file.write(b"\0" * file_size)
 
-    # Divide the file into 512 KB chunks
+    # spliit the file into 512 KB chunks
     chunk_size = 512 * 1024  # 512 KB
     num_chunks = (file_size + chunk_size - 1) // chunk_size  # Round up
     threads = []
@@ -96,11 +100,10 @@ def download_file_in_parallel(filename, peers, file_size):
         threads.append(thread)
         thread.start()
 
-    # Wait for all threads to finish
     for thread in threads:
         thread.join()
 
-    # Verify file download
+    # verify download
     actual_size = os.path.getsize(output_file)
     print(f"File {filename} downloaded. Expected size: {file_size}, Actual size: {actual_size}")
     
@@ -110,11 +113,11 @@ def download_file_in_parallel(filename, peers, file_size):
     print(f"File {filename} downloaded successfully to {output_file}.")
 
 if __name__ == "__main__":
-    filename = input("enter file name: ")  # File to download
+    filename = input("enter file name: ") 
     peers = get_peers(filename)
 
     if peers:
-        # Get the file size from the first seeder (for simplicity)
+        # Get file size from the first seeder (for simplicity)
         seeder_ip, seeder_port = peers[0]
         tcp_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         tcp_sock.connect((seeder_ip, seeder_port))
@@ -123,7 +126,6 @@ if __name__ == "__main__":
         file_size = int(tcp_sock.recv(1024).decode('utf-8'))
         tcp_sock.close()
 
-        # Download the file in parallel
         download_file_in_parallel(filename, peers, file_size)
     else:
         print(f"No seeders available for the file {filename}.")
